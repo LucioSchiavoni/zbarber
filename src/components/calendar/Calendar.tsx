@@ -1,7 +1,7 @@
 import React from 'react';
-import { Menu, Transition } from '@headlessui/react'
+import { Menu, Select, Transition } from '@headlessui/react'
 import { Field, Label, Radio, RadioGroup } from '@headlessui/react'
-import { DotsVerticalIcon } from '@heroicons/react/outline'
+import { ChevronDoubleDownIcon, DotsVerticalIcon } from '@heroicons/react/outline'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid'
 import {
   add,
@@ -20,6 +20,10 @@ import {
 import { es } from 'date-fns/locale'
 import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom';
+import TransitionComponent from '../barber/TransitionComponent';
+import SelectBarber from '../barber/SelectBarber';
+import { IoIosArrowRoundBack } from "react-icons/io";
+
 
 const meetings = [
   {
@@ -77,8 +81,11 @@ export default function Calendar() {
   let today = startOfToday()
   let [selectedDay, setSelectedDay] = useState(today)
   let [currentMonth, setCurrentMonth] = useState(format(today, 'MMM-yyyy'))
-  let firstDayCurrentMonth = parse(currentMonth, 'MMM-yyyy', new Date())
   const [selectedHour, setSelectedHour] = useState<string>('')
+
+  const [showNext, setShowNext] = React.useState(false);
+
+  let firstDayCurrentMonth = parse(currentMonth, 'MMM-yyyy', new Date())
 
   let days = eachDayOfInterval({
     start: firstDayCurrentMonth,
@@ -113,22 +120,34 @@ export default function Calendar() {
   }
 
 
+
+  
   const hours = Array.from({ length: 24 * 2 }, (_, i) => {
     const hour = Math.floor(i / 2)
     const minutes = i % 2 === 0 ? "00" : "30"; 
     return `${hour}:${minutes}`; 
   }).filter(time => {
-    const [hour, minutes] = time.split(":").map(Number);
+    const [hour] = time.split(":").map(Number);
     return hour >= 11 && hour <= 19;
   });
 
+
+
   return (
-    <div className="pt-16">
-        <Link to='/' className='px-3 py-1 rounded-md shadow-xl bg-gray-100  absolute top-5 left-10'>Volver</Link>
+    <>
+    
+    <div className="flex  flex-col items-center justify-center">
+       <Link to='/' className='h-8 w-8 rounded-md shadow-xl bg-gray-100  absolute top-2 left-5 flex justify-center items-center text-xl font-semibold'> <span className=' '><IoIosArrowRoundBack /></span></Link>
+            <TransitionComponent isVisible={!showNext}>
+     
       <div className="max-w-md px-4 mx-auto sm:px-7 md:max-w-4xl md:px-6">
+        
         <div className="md:grid md:grid-cols-2 md:divide-x md:divide-gray-200">
           <div className="md:pr-14">
-            <div className="flex items-center">
+      
+
+          
+                <div className="flex items-center">
               <h2 className="flex-auto font-semibold text-gray-900 capitalize">
                 {format(firstDayCurrentMonth, 'MMMM yyyy' , {locale: es})}
               </h2>
@@ -149,6 +168,7 @@ export default function Calendar() {
                 <ChevronRightIcon className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
+
             <div className="grid grid-cols-7 mt-10 text-xs leading-6 text-center text-gray-500">
               <div>D</div>
               <div>L</div>
@@ -158,6 +178,7 @@ export default function Calendar() {
               <div>V</div>
               <div>S</div>
             </div>
+         
             <div className="grid grid-cols-7 mt-2 text-sm">
               {days.map((day, dayIdx) => (
                 <div
@@ -208,8 +229,13 @@ export default function Calendar() {
                 </div>
               ))}
             </div>
+          
+            
+          
+           
+    
           </div>
-          <section className="mt-12 md:mt-0 md:pl-14">
+          <section className="mt-4 flex flex-col justify-between items-center  ">
   <h2 className="font-semibold text-gray-900">
     Seleccionar hora para {' '}
     <time className='capitalize' dateTime={format(selectedDay, 'yyyy-MM-dd', { locale: es })}>
@@ -219,7 +245,7 @@ export default function Calendar() {
 
           
   <RadioGroup value={selectedHour} onChange={(value) => setSelectedHour(value)} aria-label="Seleccionar hora" > 
-     <div className='grid grid-cols-2 pt-2 '>
+     <div className='grid grid-cols-3 place-content-between gap-2 pt-2 '>
   {hours.map((hour) => {
     const isDisabled = meetings.some(
       (meeting) => {
@@ -233,7 +259,7 @@ export default function Calendar() {
 
     return (
 
-      <Field key={hour} className="flex items-center gap-2">
+      <Field key={hour} className="flex items-center gap-2 border px-3 py-1 rounded-md ">
         <Radio
           value={hour}
           className="group flex size-5 items-center justify-center rounded-full border bg-white data-[checked]:bg-blue-400"
@@ -241,11 +267,15 @@ export default function Calendar() {
         >
           <span className="invisible size-2 rounded-full bg-white group-data-[checked]:visible" />
         </Radio>
-        <Label className='flex gap-2'>
+        {isDisabled ?
+        <Label className='flex gap-2 line-through text-gray-400'>
       
-            {hour} {isDisabled && <p className='text-gray-700 '>'Reservado'</p>}
+            {hour}
             
             </Label>
+            :
+            <Label className='flex gap-2 font-semibold'>{hour} </Label>
+            }
       </Field> 
       
     );
@@ -255,33 +285,42 @@ export default function Calendar() {
 
 
 
-  {selectedHour ? (
-    <button onClick={handleReserve} className="w-full bg-black text-white text-xl rounded-md mt-3">Crear</button>
-  ) : (
-    <button className="px-3 py-1 text-xl ml-5 rounded-md bg-gray-100 text-gray-400" disabled>Crear</button>
-  )}
+
 </section>
 
-          <section className="mt-12 md:mt-0 md:pl-14">
+          <section className="mt-5 flex flex-col text-center justify-center gap-2 mb-4 md:mt-0 md:pl-14">
             <h2 className="font-semibold text-gray-900">
               Jornada{' '}
               <time className='capitalize' dateTime={format(selectedDay, 'yyyy-MM-dd')}>
                 {format(selectedDay, 'MMM dd, yyy', {locale: es})}
               </time>
             </h2>
-            <ol className="mt-4 space-y-1 text-sm leading-6 text-gray-500">
-              {selectedDayMeetings.length > 0 ? (
-                selectedDayMeetings.map((meeting) => (
-                  <Meeting meeting={meeting} key={meeting.id} />
-                ))
-              ) : (
-                <p>Sin reservas.</p>
-              )}
-            </ol>
+            <div>
+
+
+      
+    </div>
+    {selectedHour ? (
+      <button className='px-3 py-1 rounded-md border w-full bg-black  text-white' onClick={() => setShowNext(true)}>Siguiente</button>
+  ) : (
+    <button className='px-3 py-1 rounded-md border w-full bg-gray-400 mt-2  text-white' disabled>Siguiente</button>
+  )}
+          
           </section>
         </div>
       </div>
+      </TransitionComponent>
+  <TransitionComponent isVisible={showNext}>
+    <div className=' flex flex-col'>
+         <SelectBarber/>
+        <button className='bg-black w-64 text-white px-3 py-1 rounded-md ' onClick={() => setShowNext(false)}>Anterior</button>
     </div>
+     
+      </TransitionComponent>
+      
+    </div> 
+
+    </>
   )
 }
 
